@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>健康食物分類大挑戰</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+TC:wght@600;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="topbar">
+        <h1 class="title">健康食物分類大挑戰</h1>
+        <div class="timer-card" aria-live="polite">
+          <span class="timer-label">剩餘時間</span>
+          <div class="timer" id="timer">
+            <span class="time-block"><strong id="mins">1</strong><small>分</small></span>
+            <span class="colon">:</span>
+            <span class="time-block"><strong id="secs">00</strong><small>秒</small></span>
+          </div>
+        </div>
+      </header>
+
+      <p class="hint">
+        從大籃子揀食物，拖去「健康食物」或「不健康食物」格子。限時 1 分鐘，全部放對就勝利！
+      </p>
+
+      <section class="board">
+        <div class="bin bin-healthy" data-bin="healthy" id="bin-healthy">
+          <div class="bin-title">🥦 健康食物</div>
+          <p class="bin-sub">五穀 · 水果 · 蔬菜 · 蛋魚肉 · 奶類</p>
+          <div class="bin-drop" id="healthy-drop"></div>
+        </div>
+
+        <div class="basket-wrap">
+          <div class="basket" id="basket">
+            <img class="basket-img" src="/ui/basket.png" alt="大籃子" />
+            <div class="basket-items" id="basket-items"></div>
+          </div>
+          <p class="basket-caption">大籃子（食物已混在一起）</p>
+        </div>
+
+        <div class="bin bin-unhealthy" data-bin="unhealthy" id="bin-unhealthy">
+          <div class="bin-title">🍭 不健康食物</div>
+          <p class="bin-sub">油 · 鹽 · 糖 · 零食 · 油炸食物</p>
+          <div class="bin-drop" id="unhealthy-drop"></div>
+        </div>
+      </section>
+
+      <footer class="actions">
+        <button class="btn ghost" id="btn-reset" type="button">重新開始</button>
+        <button class="btn primary" id="btn-check" type="button">我完成了！</button>
+      </footer>
+    </div>
+
+    <div class="overlay" id="start-overlay">
+      <div class="modal">
+        <h2>準備好了嗎？</h2>
+        <p>小朋友要把籃子裡的食物，分成健康和不健康兩類。</p>
+        <ul class="rules">
+          <li>限時 <b>1 分 00 秒</b></li>
+          <li>用手指或滑鼠把食物拖進格子</li>
+          <li>全部正確會得到「叻叻」貼紙</li>
+        </ul>
+        <button class="btn primary big" id="btn-start" type="button">開始遊戲</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="result-overlay">
+      <div class="modal result-modal">
+        <div id="win-stamp" class="stamp hidden">
+          <img src="/ui/stamp.png" alt="" />
+          <span>叻叻</span>
+        </div>
+        <h2 id="result-title"></h2>
+        <p id="result-msg"></p>
+        <button class="btn primary big" id="btn-again" type="button">再玩一次</button>
+      </div>
+    </div>
+
+    <div class="ghost-food" id="drag-ghost" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
