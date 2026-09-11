@@ -14,7 +14,10 @@
   <body>
     <div id="app" class="app">
       <header class="topbar">
-        <h1 class="title">健康食物分類大挑戰</h1>
+        <div>
+          <p class="level-chip" id="level-chip">第 1 關</p>
+          <h1 class="title" id="game-title">健康食物分類大挑戰</h1>
+        </div>
         <div class="timer-card" aria-live="polite">
           <span class="timer-label">剩餘時間</span>
           <div class="timer" id="timer">
@@ -25,11 +28,11 @@
         </div>
       </header>
 
-      <p class="hint">
+      <p class="hint" id="game-hint">
         從大籃子揀食物，拖去「健康食物」或「不健康食物」格子。限時 1 分鐘，全部放對就勝利！
       </p>
 
-      <section class="board">
+      <section class="board" id="level-1">
         <div class="bin bin-healthy" data-bin="healthy" id="bin-healthy">
           <div class="bin-title">🥦 健康食物</div>
           <p class="bin-sub">五穀 · 水果 · 蔬菜 · 蛋魚肉 · 奶類</p>
@@ -51,6 +54,41 @@
         </div>
       </section>
 
+      <section class="board-l2 hidden" id="level-2">
+        <aside class="food-panel">
+          <p class="basket-caption">待分類食物</p>
+          <div class="food-tray" id="basket-items-l2"></div>
+        </aside>
+        <div class="pyramid-stack" id="pyramid">
+          <div class="pyr-row pyr-row-oil">
+            <div class="zone zone-oil" data-zone="oil">
+              <span class="zone-label">油鹽糖 · 少吃</span>
+            </div>
+          </div>
+          <div class="pyr-row pyr-row-mid">
+            <div class="zone zone-dairy" data-zone="dairy">
+              <span class="zone-label">奶類</span>
+            </div>
+            <div class="zone zone-protein" data-zone="protein">
+              <span class="zone-label">魚禽肉蛋</span>
+            </div>
+          </div>
+          <div class="pyr-row pyr-row-low">
+            <div class="zone zone-veg" data-zone="veg">
+              <span class="zone-label">蔬菜類</span>
+            </div>
+            <div class="zone zone-fruit" data-zone="fruit">
+              <span class="zone-label">水果類</span>
+            </div>
+          </div>
+          <div class="pyr-row pyr-row-base">
+            <div class="zone zone-grains" data-zone="grains">
+              <span class="zone-label">五穀主食 · 吃最多</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer class="actions">
         <button class="btn ghost" id="btn-reset" type="button">重新開始</button>
         <button class="btn primary" id="btn-check" type="button">我完成了！</button>
@@ -59,12 +97,12 @@
 
     <div class="overlay" id="start-overlay">
       <div class="modal">
-        <h2>準備好了嗎？</h2>
-        <p>小朋友要把籃子裡的食物，分成健康和不健康兩類。</p>
-        <ul class="rules">
+        <h2 id="start-title">準備好了嗎？</h2>
+        <p id="start-desc">小朋友要把籃子裡的食物，分成健康和不健康兩類。</p>
+        <ul class="rules" id="start-rules">
           <li>限時 <b>1 分 00 秒</b></li>
           <li>用手指或滑鼠把食物拖進格子</li>
-          <li>全部正確會得到「叻叻」貼紙</li>
+          <li>全部正確會得到「叻叻」貼紙，再去第二關</li>
         </ul>
         <button class="btn primary big" id="btn-start" type="button">開始遊戲</button>
       </div>
@@ -78,7 +116,10 @@
         </div>
         <h2 id="result-title"></h2>
         <p id="result-msg"></p>
-        <button class="btn primary big" id="btn-again" type="button">再玩一次</button>
+        <div class="result-actions">
+          <button class="btn ghost" id="btn-again" type="button">再玩一次</button>
+          <button class="btn primary big hidden" id="btn-next" type="button">前往第二關</button>
+        </div>
       </div>
     </div>
 

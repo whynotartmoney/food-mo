@@ -40,12 +40,249 @@ body {
   flex-wrap: wrap;
 }
 
-.title {
-  margin: 0;
-  font-size: clamp(1.4rem, 3vw, 2.1rem);
+.level-chip {
+  margin: 0 0 4px;
+  display: inline-block;
+  background: #fff;
+  color: #d35a8d;
   font-weight: 800;
-  color: #5b3d8a;
-  text-shadow: 0 2px 0 #fff;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hidden {
+  display: none !important;
+}
+
+body.theme-l2 {
+  background: #f6ead6;
+}
+
+.app.theme-l2 {
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.55), rgba(255, 236, 220, 0.7));
+}
+
+.board-l2 {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 16px 24px;
+  align-items: start;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.food-panel {
+  position: relative;
+  z-index: 3;
+  background: #fffdf8;
+  border-radius: 24px;
+  padding: 12px 10px 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.food-panel .basket-caption {
+  margin: 0 0 10px;
+}
+
+.food-tray {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 6px;
+}
+
+.food-tray .food {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: none;
+  height: auto;
+  z-index: 4;
+  pointer-events: auto;
+}
+
+.food-tray .food img {
+  width: 52px;
+  height: 52px;
+}
+
+.food-tray .food .tag {
+  font-size: 0.62rem;
+}
+
+.pyramid-stack {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 640px);
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 12px;
+}
+
+.pyr-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pyr-row-oil {
+  width: 28%;
+}
+
+.pyr-row-mid {
+  width: 52%;
+}
+
+.pyr-row-low {
+  width: 76%;
+}
+
+.pyr-row-base {
+  width: 100%;
+}
+
+.zone {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  justify-items: center;
+  gap: 2px 4px;
+  min-height: 92px;
+  padding: 8px 8px 10px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(80, 50, 40, 0.12);
+}
+
+.pyramid-stack.review .zone {
+  overflow: visible;
+}
+
+.zone.over {
+  outline: 3px solid #fff;
+  filter: brightness(1.06);
+}
+
+.zone-oil {
+  min-height: 78px;
+  background: linear-gradient(#d7c7f4, #c4b0ea);
+  border-radius: 18px;
+}
+
+.zone-dairy {
+  background: linear-gradient(#b8e8f4, #8fd3e6);
+  border-radius: 18px 8px 8px 22px;
+}
+
+.zone-protein {
+  background: linear-gradient(#ffc09a, #f39b78);
+  border-radius: 8px 18px 22px 8px;
+}
+
+.zone-veg {
+  background: linear-gradient(#b8eadc, #8fd4c1);
+  border-radius: 20px 8px 8px 24px;
+}
+
+.zone-fruit {
+  background: linear-gradient(#ffd0c8, #f3b3aa);
+  border-radius: 8px 20px 24px 8px;
+}
+
+.zone-grains {
+  min-height: 108px;
+  background: linear-gradient(#ffe58a, #f3d15c);
+  border-radius: 22px;
+}
+
+.zone-label {
+  pointer-events: none;
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  color: #3d3552;
+  text-shadow: 0 1px 0 #fff;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  padding: 3px 10px;
+  width: max-content;
+  max-width: 100%;
+  justify-self: center;
+  line-height: 1.2;
+}
+
+.zone .food {
+  width: 100%;
+  max-width: 56px;
+  position: relative;
+  left: auto !important;
+  top: auto !important;
+  gap: 0;
+}
+
+.zone .food img {
+  width: 34px;
+  height: 34px;
+}
+
+.zone .food .tag {
+  font-size: 0.52rem;
+  padding: 0 3px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.food.wrong::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 3px solid #e23b4c;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  z-index: 3;
+  animation: wrong-pop 0.35s ease-out;
+}
+
+@keyframes wrong-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.overlay.dock {
+  align-items: start;
+  background: transparent;
+  pointer-events: none;
+  padding-top: 10px;
+}
+
+.overlay.dock .modal {
+  pointer-events: auto;
+  padding: 16px 22px;
+  max-width: 420px;
 }
 
 .timer-card {
@@ -237,6 +474,7 @@ body {
   border: none;
   padding: 0;
   appearance: none;
+  position: relative;
 }
 
 .food img {
@@ -394,6 +632,13 @@ body {
 }
 
 @media (max-width: 980px) {
+  .board-l2 {
+    grid-template-columns: 1fr;
+  }
+
+  .pyramid-stack {
+    width: min(100%, 480px);
+  }
   .bin {
     min-height: 280px;
     padding: 10px;

@@ -1,20 +1,55 @@
 import "./style.css";
-import { pickRound } from "./foods.js";
+import { pickRound, pickPyramidRound } from "./foods.js";
 
-const TOTAL_MS = 60_000;
+const LEVELS = {
+  1: {
+    title: "健康食物分類大挑戰",
+    chip: "第 1 關",
+    hint: "從大籃子揀食物，拖去「健康食物」或「不健康食物」格子。限時 1 分鐘，全部放對就勝利！",
+    minutes: 1,
+    ms: 60_000,
+    startTitle: "準備好了嗎？",
+    startDesc: "小朋友要把籃子裡的食物，分成健康和不健康兩類。",
+    rules: [
+      "限時 <b>1 分 00 秒</b>",
+      "用手指或滑鼠把食物拖進格子",
+      "全部正確會得到「叻叻」貼紙，再去第二關",
+    ],
+  },
+  2: {
+    title: "健康飲食金字塔",
+    chip: "第 2 關",
+    hint: "由下至上：底層吃最多、頂層少吃。把食物拖到金字塔正確一層。限時 2 分鐘。",
+    minutes: 2,
+    ms: 120_000,
+    startTitle: "第二關：健康飲食金字塔",
+    startDesc: "把食物放到金字塔每一層：五穀在最底、蔬菜左、水果右、奶類左上、魚肉蛋右上、油鹽糖在最頂。",
+    rules: [
+      "限時 <b>2 分 00 秒</b>",
+      "底層吃最多，頂層少吃",
+      "全部放對會再得到「叻叻」貼紙",
+    ],
+  },
+};
+
 const $ = (id) => document.getElementById(id);
 
 const state = {
+  level: 1,
   foods: [],
   placements: {},
   started: false,
   ended: false,
-  remain: TOTAL_MS,
+  remain: LEVELS[1].ms,
   timerId: null,
-  drag: null,
 };
 
-function placeInBasket(el, index, total) {
+function basketId() {
+  return state.level === 2 ? "basket-items-l2" : "basket-items";
+}
+
+function placeInBasket(el, index) {
+  if (state.level === 2) return;
   const col = index % 4;
   const row = Math.floor(index / 4);
   const jitterX = ((index * 17) % 13) - 6;
@@ -30,29 +65,45 @@ function makeFoodEl(food, index) {
   el.dataset.id = food.id;
   el.innerHTML = `<img src="${food.src}" alt="${food.name}" /><span class="tag">${food.name}</span>`;
   el.addEventListener("pointerdown", (e) => startDrag(e, food, el));
-  placeInBasket(el, index, state.foods.length);
+  placeInBasket(el, index);
   return el;
 }
 
 function render() {
-  const basket = $("basket-items");
-  const healthy = $("healthy-drop");
-  const unhealthy = $("unhealthy-drop");
-  basket.innerHTML = "";
-  healthy.innerHTML = "";
-  unhealthy.innerHTML = "";
+  if (state.level === 1) {
+    const basket = $("basket-items");
+    const healthy = $("healthy-drop");
+    const unhealthy = $("unhealthy-drop");
+    basket.innerHTML = "";
+    healthy.innerHTML = "";
+    unhealthy.innerHTML = "";
+    state.foods.forEach((food, i) => {
+      const el = makeFoodEl(food, i);
+      const where = state.placements[food.id] || "basket";
+      if (where === "healthy" || where === "unhealthy") {
+        el.style.left = "";
+        el.style.top = "";
+        (where === "healthy" ? healthy : unhealthy).appendChild(el);
+      } else {
+        basket.appendChild(el);
+      }
+    });
+    return;
+  }
 
+  const basket = $("basket-items-l2");
+  basket.innerHTML = "";
+  document.querySelectorAll("#pyramid .zone").forEach((zone) => {
+    [...zone.querySelectorAll(".food")].forEach((n) => n.remove());
+  });
   state.foods.forEach((food, i) => {
     const el = makeFoodEl(food, i);
     const where = state.placements[food.id] || "basket";
-    if (where === "healthy") {
+    const zone = document.querySelector(`#pyramid .zone[data-zone="${where}"]`);
+    if (zone) {
       el.style.left = "";
       el.style.top = "";
-      healthy.appendChild(el);
-    } else if (where === "unhealthy") {
-      el.style.left = "";
-      el.style.top = "";
-      unhealthy.appendChild(el);
+      zone.appendChild(el);
     } else {
       basket.appendChild(el);
     }
@@ -68,12 +119,11 @@ function startDrag(e, food, el) {
   ghost.innerHTML = `<img src="${food.src}" alt="" />`;
   ghost.style.left = `${e.clientX}px`;
   ghost.style.top = `${e.clientY}px`;
-  state.drag = { food, el };
 
   const move = (ev) => {
     ghost.style.left = `${ev.clientX}px`;
     ghost.style.top = `${ev.clientY}px`;
-    highlightBin(ev.clientX, ev.clientY);
+    highlightTarget(ev.clientX, ev.clientY);
   };
   const up = (ev) => {
     window.removeEventListener("pointermove", move);
@@ -81,39 +131,49 @@ function startDrag(e, food, el) {
     window.removeEventListener("pointercancel", up);
     ghost.hidden = true;
     el.classList.remove("dragging");
-    const bin = hitBin(ev.clientX, ev.clientY);
-    $("bin-healthy").classList.remove("over");
-    $("bin-unhealthy").classList.remove("over");
-    if (bin) {
-      state.placements[food.id] = bin;
+    const target = hitTarget(ev.clientX, ev.clientY);
+    clearHighlights();
+    if (target) {
+      state.placements[food.id] = target;
       render();
       if (Object.keys(state.placements).length === state.foods.length) {
         finish("submit");
       }
     }
-    state.drag = null;
   };
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("pointercancel", up);
 }
 
-function hitBin(x, y) {
-  const healthy = $("bin-healthy").getBoundingClientRect();
-  const unhealthy = $("bin-unhealthy").getBoundingClientRect();
-  if (x >= healthy.left && x <= healthy.right && y >= healthy.top && y <= healthy.bottom) {
-    return "healthy";
+function hitTarget(x, y) {
+  const stack = document.elementsFromPoint(x, y);
+  if (state.level === 1) {
+    if (stack.some((n) => n.id === "bin-healthy" || n.closest?.("#bin-healthy"))) return "healthy";
+    if (stack.some((n) => n.id === "bin-unhealthy" || n.closest?.("#bin-unhealthy"))) return "unhealthy";
+    return null;
   }
-  if (x >= unhealthy.left && x <= unhealthy.right && y >= unhealthy.top && y <= unhealthy.bottom) {
-    return "unhealthy";
-  }
-  return null;
+  const zone = stack.find((n) => n.dataset?.zone || n.closest?.("[data-zone]"));
+  if (!zone) return null;
+  return zone.dataset?.zone || zone.closest("[data-zone]").dataset.zone;
 }
 
-function highlightBin(x, y) {
-  const bin = hitBin(x, y);
-  $("bin-healthy").classList.toggle("over", bin === "healthy");
-  $("bin-unhealthy").classList.toggle("over", bin === "unhealthy");
+function highlightTarget(x, y) {
+  const target = hitTarget(x, y);
+  if (state.level === 1) {
+    $("bin-healthy").classList.toggle("over", target === "healthy");
+    $("bin-unhealthy").classList.toggle("over", target === "unhealthy");
+    return;
+  }
+  document.querySelectorAll("#pyramid .zone").forEach((z) => {
+    z.classList.toggle("over", z.dataset.zone === target);
+  });
+}
+
+function clearHighlights() {
+  $("bin-healthy")?.classList.remove("over");
+  $("bin-unhealthy")?.classList.remove("over");
+  document.querySelectorAll("#pyramid .zone").forEach((z) => z.classList.remove("over"));
 }
 
 function formatTime(ms) {
@@ -132,12 +192,25 @@ function tick() {
   if (state.remain <= 0) finish("timeout");
 }
 
+function markWrongFoods() {
+  document.querySelectorAll(".food.wrong").forEach((el) => el.classList.remove("wrong"));
+  $("pyramid")?.classList.add("review");
+  if (state.level !== 2) return;
+  state.foods.forEach((food) => {
+    const placed = state.placements[food.id];
+    if (placed && placed === food.pyramid) return;
+    document.querySelectorAll(`.food[data-id="${food.id}"]`).forEach((el) => {
+      el.classList.add("wrong");
+    });
+  });
+}
+
 function allCorrect() {
   if (state.foods.some((f) => !state.placements[f.id])) return false;
-  return state.foods.every((f) => {
-    const want = f.healthy ? "healthy" : "unhealthy";
-    return state.placements[f.id] === want;
-  });
+  if (state.level === 1) {
+    return state.foods.every((f) => state.placements[f.id] === (f.healthy ? "healthy" : "unhealthy"));
+  }
+  return state.foods.every((f) => state.placements[f.id] === f.pyramid);
 }
 
 function finish(reason) {
@@ -147,11 +220,20 @@ function finish(reason) {
   const win = allCorrect();
   const overlay = $("result-overlay");
   const stamp = $("win-stamp");
-  overlay.classList.remove("hidden");
+  const next = $("btn-next");
+  overlay.classList.remove("hidden", "dock");
+  next.classList.add("hidden");
+  $("result-title").className = "";
+
   if (win) {
     stamp.classList.remove("hidden");
     $("result-title").textContent = "全部正確！";
-    $("result-msg").textContent = "限時內分類成功，送你一枚叻叻貼紙！";
+    if (state.level === 1) {
+      $("result-msg").textContent = "限時內分類成功，送你一枚叻叻貼紙！可以前往第二關。";
+      next.classList.remove("hidden");
+    } else {
+      $("result-msg").textContent = "金字塔全部放對了，送你一枚叻叻貼紙！";
+    }
   } else {
     stamp.classList.add("hidden");
     $("result-title").className = "lose-text";
@@ -161,23 +243,48 @@ function finish(reason) {
       reason === "timeout"
         ? left
           ? "時間到了，還有食物未分類。再試一次吧！"
-          : "時間到了，有些食物放錯格子了。"
-        : "有食物放錯了格子，再練習一次就更棒！";
+          : "時間到了，有些食物放錯位置了。"
+        : state.level === 2
+          ? "紅圈圈住放錯的位置，再練習一次就更棒！"
+          : "有食物放錯了位置，再練習一次就更棒！";
+    if (state.level === 2) {
+      markWrongFoods();
+      overlay.classList.add("dock");
+    }
   }
 }
 
-function newGame() {
+function applyLevelChrome() {
+  const cfg = LEVELS[state.level];
+  $("game-title").textContent = cfg.title;
+  $("level-chip").textContent = cfg.chip;
+  $("game-hint").textContent = cfg.hint;
+  $("start-title").textContent = cfg.startTitle;
+  $("start-desc").textContent = cfg.startDesc;
+  $("start-rules").innerHTML = cfg.rules.map((r) => `<li>${r}</li>`).join("");
+  $("mins").textContent = String(cfg.minutes);
+  $("secs").textContent = "00";
+  document.body.classList.toggle("theme-l2", state.level === 2);
+  document.querySelector(".app").classList.toggle("theme-l2", state.level === 2);
+  $("level-1").classList.toggle("hidden", state.level !== 1);
+  $("level-2").classList.toggle("hidden", state.level !== 2);
+}
+
+function newGame(level = 1) {
   clearInterval(state.timerId);
-  state.foods = pickRound(12);
+  state.level = level;
+  state.foods = level === 1 ? pickRound(12) : pickPyramidRound(2);
   state.placements = {};
   state.started = false;
   state.ended = false;
-  state.remain = TOTAL_MS;
-  $("mins").textContent = "1";
-  $("secs").textContent = "00";
+  state.remain = LEVELS[level].ms;
   $("timer").classList.remove("urgent");
   $("result-overlay").classList.add("hidden");
+  $("result-overlay").classList.remove("dock");
   $("result-title").className = "";
+  $("btn-next").classList.add("hidden");
+  applyLevelChrome();
+  $("pyramid")?.classList.remove("review");
   $("start-overlay").classList.remove("hidden");
   render();
 }
@@ -186,19 +293,19 @@ function startGame() {
   $("start-overlay").classList.add("hidden");
   state.started = true;
   state.ended = false;
-  state.remain = TOTAL_MS;
+  state.remain = LEVELS[state.level].ms;
   clearInterval(state.timerId);
   state.timerId = setInterval(tick, 250);
 }
 
 $("btn-start").addEventListener("click", startGame);
-$("btn-again").addEventListener("click", () => {
-  newGame();
-});
-$("btn-reset").addEventListener("click", () => newGame());
+$("btn-again").addEventListener("click", () => newGame(state.level));
+$("btn-next").addEventListener("click", () => newGame(2));
+$("btn-reset").addEventListener("click", () => newGame(state.level));
 $("btn-check").addEventListener("click", () => {
   if (!state.started || state.ended) return;
   finish("submit");
 });
 
-newGame();
+const bootLevel = new URLSearchParams(location.search).get("level") === "2" ? 2 : 1;
+newGame(bootLevel);
